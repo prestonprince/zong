@@ -39,7 +39,7 @@ const Ball = struct {
         const wall_2_x_conditional = self.position.x + self.size >= wall_2.position.x;
 
         if ((wall_1_y_cond and wall_1_x_conditional) or (wall_2_y_cond and wall_2_x_conditional)) {
-            self.speed.x *= -1;
+            self.speed.x *= -1.1;
             return .{ .is_game_over = false, .player_winner = -1 };
         }
 
@@ -72,11 +72,11 @@ const Wall = struct {
     }
     pub fn update(self: *Wall, is_wall_1: bool) void {
         if (is_wall_1) {
-            if (rl.isKeyDown(rl.KeyboardKey.key_w)) self.position.y -= 7;
-            if (rl.isKeyDown(rl.KeyboardKey.key_s)) self.position.y += 7;
+            if (rl.isKeyDown(rl.KeyboardKey.key_w)) self.position.y -= 9;
+            if (rl.isKeyDown(rl.KeyboardKey.key_s)) self.position.y += 9;
         } else {
-            if (rl.isKeyDown(rl.KeyboardKey.key_up)) self.position.y -= 7;
-            if (rl.isKeyDown(rl.KeyboardKey.key_down)) self.position.y += 7;
+            if (rl.isKeyDown(rl.KeyboardKey.key_up)) self.position.y -= 9;
+            if (rl.isKeyDown(rl.KeyboardKey.key_down)) self.position.y += 9;
         }
     }
     pub fn draw(self: *Wall) void {
