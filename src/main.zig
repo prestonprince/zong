@@ -54,9 +54,7 @@ const Wall = struct {
     pub fn update(self: *Wall, ball: *Ball, is_wall_1: bool) void {
         self.position = rlm.vector2Add(self.position, self.speed);
 
-        if (is_wall_1 and ball.position.x <= self.position.x + WALL_WIDTH) {
-            ball.speed.x *= -1;
-        } else if (!is_wall_1 and ball.position.x + ball.size >= self.position.x) {
+        if ((is_wall_1 and ball.position.x <= self.position.x + WALL_WIDTH) or (!is_wall_1 and ball.position.x + ball.size >= self.position.x)) {
             ball.speed.x *= -1;
         }
     }
