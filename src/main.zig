@@ -6,6 +6,21 @@ const game_state = @import("models/game_state.zig");
 const ball = @import("models/ball.zig");
 const wall = @import("models/wall.zig");
 
+fn get_x_y_text_start(text: [:0]const u8, font_size: i32) struct {
+    x_start: i32,
+    y_start: i32,
+} {
+    const screenCenterX: i32 = @divTrunc(game_state.SCREEN_WIDTH, 2);
+    const screenCenterY: i32 = @divTrunc(game_state.SCREEN_HEIGHT, 2);
+
+    const text_width: i32 = rl.measureText(text, font_size);
+
+    const text_x_start = screenCenterX - (@divTrunc(text_width, 2));
+    const text_y_start = screenCenterY - font_size;
+
+    return .{ .x_start = text_x_start, .y_start = text_y_start };
+}
+
 pub fn main() !void {
     rl.initWindow(game_state.SCREEN_WIDTH, game_state.SCREEN_HEIGHT, "zong");
     defer rl.closeWindow();
@@ -40,21 +55,11 @@ pub fn main() !void {
             const game_over_text: [:0]const u8 = "GAME OVER";
             const game_winner_text: [:0]const u8 = if (main_game_state.game_winner == game_state.PlayerEnum.player_one) "PLAYER ONE WINS" else "PLAYER TWO WINS";
 
-            const screenCenterX: i32 = @divTrunc(game_state.SCREEN_WIDTH, 2);
-            const screenCenterY: i32 = @divTrunc(game_state.SCREEN_HEIGHT, 2);
+            const game_over_text_starts = get_x_y_text_start(game_over_text, 24);
+            const game_winner_text_starts = get_x_y_text_start(game_winner_text, 24);
 
-            const font_size: i32 = 24;
-            const game_over_text_width: i32 = rl.measureText(game_over_text, font_size);
-            const game_winner_text_width: i32 = rl.measureText(game_winner_text, font_size);
-
-            const game_over_text_start_x = screenCenterX - (@divTrunc(game_over_text_width, 2));
-            const game_winner_text_start_x = screenCenterX - (@divTrunc(game_winner_text_width, 2));
-
-            const game_over_text_start_y = screenCenterY - font_size;
-            const game_winner_text_start_y = (screenCenterY - font_size);
-
-            rl.drawText(game_over_text, game_over_text_start_x, game_over_text_start_y - 25, font_size, rl.Color.red);
-            rl.drawText(game_winner_text, game_winner_text_start_x, game_winner_text_start_y + 10, font_size, rl.Color.red);
+            rl.drawText(game_over_text, game_over_text_starts.x_start, game_over_text_starts.y_start - 25, 24, rl.Color.red);
+            rl.drawText(game_winner_text, game_winner_text_starts.x_start, game_winner_text_starts.y_start + 10, 24, rl.Color.red);
         }
     }
 }
