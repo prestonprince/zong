@@ -21,18 +21,37 @@ const Ball = struct {
             .speed = rl.Vector2.init(speed, speed),
         };
     }
-    pub fn update(self: *Ball) void {
+    pub fn update(self: *Ball, wall_1: *Wall, wall_2: *Wall) struct {
+        is_game_over: bool,
+        player_winner: i32,
+    } {
         self.position = rlm.vector2Add(self.position, self.speed);
 
         // check for y collisions
         if (self.position.y <= 0 or self.position.y + self.size >= SCREEN_HEIGHT) {
             self.speed.y *= -1;
+            return .{ .is_game_over = false, .player_winner = -1 };
         }
 
-        // check for x collisions
-        if (self.position.x <= 0 or self.position.x + self.size >= SCREEN_WIDTH) {
+        const wall_1_y_cond = self.position.y >= wall_1.position.y and self.position.y <= wall_1.position.y + WALL_HEIGHT;
+        const wall_2_y_cond = self.position.y >= wall_2.position.y and self.position.y <= wall_2.position.y + WALL_HEIGHT;
+        const wall_1_x_conditional = self.position.x - self.size <= wall_1.position.x + WALL_WIDTH;
+        const wall_2_x_conditional = self.position.x + self.size >= wall_2.position.x;
+
+        if ((wall_1_y_cond and wall_1_x_conditional) or (wall_2_y_cond and wall_2_x_conditional)) {
             self.speed.x *= -1;
+            return .{ .is_game_over = false, .player_winner = -1 };
         }
+
+        if (self.position.x < wall_1.position.x + WALL_WIDTH) {
+            return .{ .is_game_over = true, .player_winner = 2 };
+        }
+
+        if (self.position.x + self.size > wall_2.position.x) {
+            return .{ .is_game_over = true, .player_winner = 1 };
+        }
+
+        return .{ .is_game_over = false, .player_winner = -1 };
     }
     pub fn draw(self: *Ball) void {
         rl.drawCircleV(self.position, self.size, rl.Color.white);
@@ -51,11 +70,13 @@ const Wall = struct {
             .speed = rl.Vector2.init(speed, speed),
         };
     }
-    pub fn update(self: *Wall, ball: *Ball, is_wall_1: bool) void {
-        self.position = rlm.vector2Add(self.position, self.speed);
-
-        if ((is_wall_1 and ball.position.x <= self.position.x + WALL_WIDTH) or (!is_wall_1 and ball.position.x + ball.size >= self.position.x)) {
-            ball.speed.x *= -1;
+    pub fn update(self: *Wall, is_wall_1: bool) void {
+        if (is_wall_1) {
+            if (rl.isKeyDown(rl.KeyboardKey.key_w)) self.position.y -= 7;
+            if (rl.isKeyDown(rl.KeyboardKey.key_s)) self.position.y += 7;
+        } else {
+            if (rl.isKeyDown(rl.KeyboardKey.key_up)) self.position.y -= 7;
+            if (rl.isKeyDown(rl.KeyboardKey.key_down)) self.position.y += 7;
         }
     }
     pub fn draw(self: *Wall) void {
@@ -67,9 +88,11 @@ pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "tut pong");
     defer rl.closeWindow();
 
-    var ball = Ball.init(400, 200, 10, 6);
-    var wall = Wall.init(10, 10, WALL_WIDTH, WALL_HEIGHT, 0);
-    var wall_2 = Wall.init(770, 10, WALL_WIDTH, WALL_HEIGHT, 0);
+    var ball = Ball.init(400, 200, 10, 4);
+    var wall = Wall.init(50, 10, WALL_WIDTH, WALL_HEIGHT, 0);
+    var wall_2 = Wall.init(730, 10, WALL_WIDTH, WALL_HEIGHT, 0);
+
+    var end_game: bool = false;
 
     // main game loop
     rl.setTargetFPS(60);
@@ -79,14 +102,21 @@ pub fn main() !void {
 
         rl.clearBackground(rl.Color.black);
 
-        // Update
-        ball.update();
-        wall.update(&ball, true);
-        wall_2.update(&ball, false);
+        if (!end_game) {
+            // Update
+            const state = ball.update(&wall, &wall_2);
+            wall.update(true);
+            wall_2.update(false);
 
-        // Draw
-        wall.draw();
-        wall_2.draw();
-        ball.draw();
+            // Draw
+            wall.draw();
+            wall_2.draw();
+            ball.draw();
+            if (state.is_game_over) {
+                end_game = true;
+            }
+        } else {
+            rl.drawText("GAME OVER", 350, 200, 24, rl.Color.red);
+        }
     }
 }
