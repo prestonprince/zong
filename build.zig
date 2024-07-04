@@ -26,7 +26,7 @@ pub fn build(b: *std.Build) void {
     const raylib_artifact = raylib_dep.artifact("raylib");
 
     const lib = b.addStaticLibrary(.{
-        .name = "zigvaders",
+        .name = "zong",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = b.path("src/root.zig"),
@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(lib);
 
     const exe = b.addExecutable(.{
-        .name = "zigvaders",
+        .name = "zong",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
