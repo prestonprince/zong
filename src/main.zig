@@ -1,100 +1,28 @@
 const std = @import("std");
 const rl = @import("raylib");
-
 const rlm = rl.math;
 
-const SCREEN_WIDTH = 800;
-const SCREEN_HEIGHT = 400;
-
-const WALL_HEIGHT = 200;
-const WALL_WIDTH = 20;
-
-const Ball = struct {
-    position: rl.Vector2,
-    size: f32,
-    speed: rl.Vector2,
-
-    pub fn init(x: f32, y: f32, size: f32, speed: f32) Ball {
-        return Ball{
-            .position = rl.Vector2.init(x, y),
-            .size = size,
-            .speed = rl.Vector2.init(speed, speed),
-        };
-    }
-    pub fn update(self: *Ball, wall_1: *Wall, wall_2: *Wall) struct {
-        is_game_over: bool,
-        player_winner: i32,
-    } {
-        self.position = rlm.vector2Add(self.position, self.speed);
-
-        // check for y collisions
-        if (self.position.y <= 0 or self.position.y + self.size >= SCREEN_HEIGHT) {
-            self.speed.y *= -1;
-            return .{ .is_game_over = false, .player_winner = -1 };
-        }
-
-        const wall_1_y_cond = self.position.y >= wall_1.position.y and self.position.y <= wall_1.position.y + WALL_HEIGHT;
-        const wall_2_y_cond = self.position.y >= wall_2.position.y and self.position.y <= wall_2.position.y + WALL_HEIGHT;
-        const wall_1_x_conditional = self.position.x - self.size <= wall_1.position.x + WALL_WIDTH;
-        const wall_2_x_conditional = self.position.x + self.size >= wall_2.position.x;
-
-        if ((wall_1_y_cond and wall_1_x_conditional) or (wall_2_y_cond and wall_2_x_conditional)) {
-            self.speed.x *= -1.1;
-            return .{ .is_game_over = false, .player_winner = -1 };
-        }
-
-        if (self.position.x < wall_1.position.x + WALL_WIDTH) {
-            return .{ .is_game_over = true, .player_winner = 2 };
-        }
-
-        if (self.position.x + self.size > wall_2.position.x) {
-            return .{ .is_game_over = true, .player_winner = 1 };
-        }
-
-        return .{ .is_game_over = false, .player_winner = -1 };
-    }
-    pub fn draw(self: *Ball) void {
-        rl.drawCircleV(self.position, self.size, rl.Color.white);
-    }
-};
-
-const Wall = struct {
-    position: rl.Vector2,
-    size: rl.Vector2,
-    speed: rl.Vector2,
-
-    pub fn init(x: f32, y: f32, width: f32, length: f32, speed: f32) Wall {
-        return Wall{
-            .position = rl.Vector2.init(x, y),
-            .size = rl.Vector2.init(width, length),
-            .speed = rl.Vector2.init(speed, speed),
-        };
-    }
-    pub fn update(self: *Wall, is_wall_1: bool) void {
-        if (is_wall_1) {
-            if (rl.isKeyDown(rl.KeyboardKey.key_w)) self.position.y -= 9;
-            if (rl.isKeyDown(rl.KeyboardKey.key_s)) self.position.y += 9;
-        } else {
-            if (rl.isKeyDown(rl.KeyboardKey.key_up)) self.position.y -= 9;
-            if (rl.isKeyDown(rl.KeyboardKey.key_down)) self.position.y += 9;
-        }
-    }
-    pub fn draw(self: *Wall) void {
-        rl.drawRectangleV(self.position, self.size, rl.Color.white);
-    }
-};
+const game_state = @import("models/game_state.zig");
+const ball = @import("models/ball.zig");
+const wall = @import("models/wall.zig");
 
 pub fn main() !void {
-    rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "zong");
+    rl.initWindow(game_state.SCREEN_WIDTH, game_state.SCREEN_HEIGHT, "zong");
     defer rl.closeWindow();
 
-    var ball = Ball.init(400, 200, 10, 4);
-    var wall = Wall.init(50, 10, WALL_WIDTH, WALL_HEIGHT, 0);
-    var wall_2 = Wall.init(730, 10, WALL_WIDTH, WALL_HEIGHT, 0);
+    var main_ball = ball.Ball.init(400, 200, 10, 4);
+    var wall_1 = wall.Wall.init(50, 10, wall.WALL_WIDTH, wall.WALL_HEIGHT, 0);
+    var wall_2 = wall.Wall.init(730, 10, wall.WALL_WIDTH, wall.WALL_HEIGHT, 0);
 
-    var end_game: bool = false;
+    var main_game_state = game_state.GameState{
+        .main_ball = &main_ball,
+        .wall_1 = &wall_1,
+        .wall_2 = &wall_2,
+        .game_winner = game_state.PlayerEnum.none,
+        .is_game_over = false,
+    };
 
-    // main game loop
+    // Main game loop
     rl.setTargetFPS(60);
     while (!rl.windowShouldClose()) {
         rl.beginDrawing();
@@ -102,21 +30,31 @@ pub fn main() !void {
 
         rl.clearBackground(rl.Color.black);
 
-        if (!end_game) {
+        if (!main_game_state.is_game_over and main_game_state.game_winner == game_state.PlayerEnum.none) {
             // Update
-            const state = ball.update(&wall, &wall_2);
-            wall.update(true);
-            wall_2.update(false);
+            main_game_state.update();
 
             // Draw
-            wall.draw();
-            wall_2.draw();
-            ball.draw();
-            if (state.is_game_over) {
-                end_game = true;
-            }
+            main_game_state.draw();
         } else {
-            rl.drawText("GAME OVER", 350, 200, 24, rl.Color.red);
+            const game_over_text: [:0]const u8 = "GAME OVER";
+            const game_winner_text: [:0]const u8 = if (main_game_state.game_winner == game_state.PlayerEnum.player_one) "PLAYER ONE WINS" else "PLAYER TWO WINS";
+
+            const screenCenterX: i32 = @divTrunc(game_state.SCREEN_WIDTH, 2);
+            const screenCenterY: i32 = @divTrunc(game_state.SCREEN_HEIGHT, 2);
+
+            const font_size: i32 = 24;
+            const game_over_text_width: i32 = rl.measureText(game_over_text, font_size);
+            const game_winner_text_width: i32 = rl.measureText(game_winner_text, font_size);
+
+            const game_over_text_start_x = screenCenterX - (@divTrunc(game_over_text_width, 2));
+            const game_winner_text_start_x = screenCenterX - (@divTrunc(game_winner_text_width, 2));
+
+            const game_over_text_start_y = screenCenterY - font_size;
+            const game_winner_text_start_y = (screenCenterY - font_size);
+
+            rl.drawText(game_over_text, game_over_text_start_x, game_over_text_start_y - 25, font_size, rl.Color.red);
+            rl.drawText(game_winner_text, game_winner_text_start_x, game_winner_text_start_y + 10, font_size, rl.Color.red);
         }
     }
 }
