@@ -6,6 +6,9 @@ const rlm = rl.math;
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 400;
 
+const WALL_HEIGHT = 200;
+const WALL_WIDTH = 20;
+
 const Ball = struct {
     position: rl.Vector2,
     size: f32,
@@ -48,8 +51,14 @@ const Wall = struct {
             .speed = rl.Vector2.init(speed, speed),
         };
     }
-    pub fn update(self: *Wall) void {
+    pub fn update(self: *Wall, ball: *Ball, is_wall_1: bool) void {
         self.position = rlm.vector2Add(self.position, self.speed);
+
+        if (is_wall_1 and ball.position.x <= self.position.x + WALL_WIDTH) {
+            ball.speed.x *= -1;
+        } else if (!is_wall_1 and ball.position.x + ball.size >= self.position.x) {
+            ball.speed.x *= -1;
+        }
     }
     pub fn draw(self: *Wall) void {
         rl.drawRectangleV(self.position, self.size, rl.Color.white);
@@ -60,9 +69,9 @@ pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "tut pong");
     defer rl.closeWindow();
 
-    var ball = Ball.init(0, 0, 10, 6);
-    var wall = Wall.init(10, 10, 20, 200, 0);
-    var wall_2 = Wall.init(770, 10, 20, 200, 0);
+    var ball = Ball.init(400, 200, 10, 6);
+    var wall = Wall.init(10, 10, WALL_WIDTH, WALL_HEIGHT, 0);
+    var wall_2 = Wall.init(770, 10, WALL_WIDTH, WALL_HEIGHT, 0);
 
     // main game loop
     rl.setTargetFPS(60);
@@ -74,8 +83,8 @@ pub fn main() !void {
 
         // Update
         ball.update();
-        wall.update();
-        wall_2.update();
+        wall.update(&ball, true);
+        wall_2.update(&ball, false);
 
         // Draw
         wall.draw();
