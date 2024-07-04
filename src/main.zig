@@ -85,7 +85,7 @@ const Wall = struct {
 };
 
 pub fn main() !void {
-    rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "tut pong");
+    rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "zong");
     defer rl.closeWindow();
 
     var ball = Ball.init(400, 200, 10, 4);
