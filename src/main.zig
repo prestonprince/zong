@@ -6,20 +6,7 @@ const game_state = @import("models/game_state.zig");
 const ball = @import("models/ball.zig");
 const wall = @import("models/wall.zig");
 
-fn get_x_y_text_start(text: [:0]const u8, font_size: i32) struct {
-    x_start: i32,
-    y_start: i32,
-} {
-    const screenCenterX: i32 = @divTrunc(game_state.SCREEN_WIDTH, 2);
-    const screenCenterY: i32 = @divTrunc(game_state.SCREEN_HEIGHT, 2);
-
-    const text_width: i32 = rl.measureText(text, font_size);
-
-    const text_x_start = screenCenterX - (@divTrunc(text_width, 2));
-    const text_y_start = screenCenterY - font_size;
-
-    return .{ .x_start = text_x_start, .y_start = text_y_start };
-}
+const util = @import("utils/util.zig");
 
 pub fn main() !void {
     rl.initWindow(game_state.SCREEN_WIDTH, game_state.SCREEN_HEIGHT, "zong");
@@ -35,6 +22,7 @@ pub fn main() !void {
         .wall_2 = &wall_2,
         .game_winner = game_state.PlayerEnum.none,
         .is_game_over = false,
+        .is_title_screen = true,
     };
 
     // Main game loop
@@ -45,7 +33,18 @@ pub fn main() !void {
 
         rl.clearBackground(rl.Color.black);
 
-        if (!main_game_state.is_game_over and main_game_state.game_winner == game_state.PlayerEnum.none) {
+        if (main_game_state.is_title_screen) {
+            const title_text = "Zong";
+            const title_text_starts = util.get_x_y_text_start(title_text, 24);
+
+            const instruction_text = "Press Enter To Start";
+            const instruction_text_starts = util.get_x_y_text_start(instruction_text, 24);
+
+            rl.drawText(title_text, title_text_starts.x_start, title_text_starts.y_start - 25, 24, rl.Color.white);
+            rl.drawText(instruction_text, instruction_text_starts.x_start, instruction_text_starts.y_start + 10, 24, rl.Color.white);
+
+            main_game_state.update();
+        } else if (!main_game_state.is_game_over and main_game_state.game_winner == game_state.PlayerEnum.none) {
             // Update
             main_game_state.update();
 
@@ -54,12 +53,21 @@ pub fn main() !void {
         } else {
             const game_over_text: [:0]const u8 = "GAME OVER";
             const game_winner_text: [:0]const u8 = if (main_game_state.game_winner == game_state.PlayerEnum.player_one) "PLAYER ONE WINS" else "PLAYER TWO WINS";
+            const restart_text: [:0]const u8 = "Press Enter To Restart";
 
-            const game_over_text_starts = get_x_y_text_start(game_over_text, 24);
-            const game_winner_text_starts = get_x_y_text_start(game_winner_text, 24);
+            const game_over_text_starts = util.get_x_y_text_start(game_over_text, 24);
+            const game_winner_text_starts = util.get_x_y_text_start(game_winner_text, 24);
+            const restart_text_starts = util.get_x_y_text_start(restart_text, 18);
 
             rl.drawText(game_over_text, game_over_text_starts.x_start, game_over_text_starts.y_start - 25, 24, rl.Color.red);
             rl.drawText(game_winner_text, game_winner_text_starts.x_start, game_winner_text_starts.y_start + 10, 24, rl.Color.red);
+            rl.drawText(restart_text, restart_text_starts.x_start, restart_text_starts.y_start + 40, 18, rl.Color.white);
+
+            if (rl.isKeyDown(rl.KeyboardKey.key_enter)) {
+                main_game_state.game_winner = game_state.PlayerEnum.none;
+                main_game_state.is_game_over = false;
+                main_game_state.is_title_screen = true;
+            }
         }
     }
 }

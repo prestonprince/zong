@@ -2,6 +2,8 @@ const rl = @import("raylib");
 const wall = @import("wall.zig");
 const ball = @import("ball.zig");
 
+const util = @import("../utils/util.zig");
+
 pub const SCREEN_WIDTH = 800;
 pub const SCREEN_HEIGHT = 400;
 
@@ -18,10 +20,18 @@ pub const GameState = struct {
     main_ball: *ball.Ball,
 
     // States
+    is_title_screen: bool,
     is_game_over: bool,
     game_winner: PlayerEnum,
 
     pub fn update(self: *GameState) void {
+        if (self.is_title_screen) {
+            if (rl.isKeyDown(rl.KeyboardKey.key_enter)) {
+                self.is_title_screen = false;
+            }
+
+            return;
+        }
         self.wall_1.update(true);
         self.wall_2.update(false);
         const game_update = self.main_ball.update(self.wall_1, self.wall_2);
