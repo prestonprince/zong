@@ -10,12 +10,14 @@ pub const Ball = struct {
     position: rl.Vector2,
     size: f32,
     speed: rl.Vector2,
+    color: rl.Color,
 
-    pub fn init(x: f32, y: f32, size: f32, speed: f32) Ball {
+    pub fn init(x: f32, y: f32, size: f32, speed: f32, color: rl.Color) Ball {
         return Ball{
             .position = rl.Vector2.init(x, y),
             .size = size,
             .speed = rl.Vector2.init(speed, speed),
+            .color = color,
         };
     }
     pub fn update(self: *Ball, wall_1: *Wall, wall_2: *Wall) struct {
@@ -37,7 +39,12 @@ pub const Ball = struct {
         const wall_2_x_conditional = self.position.x + self.size >= wall_2.position.x;
 
         if ((wall_1_y_cond and wall_1_x_conditional) or (wall_2_y_cond and wall_2_x_conditional)) {
-            self.speed.x *= -1.1;
+            if (@abs(self.speed.x) < 12) {
+                self.speed.x *= -1.1;
+            } else {
+                self.speed.x *= -1;
+            }
+
             return .{ .is_game_over = false, .game_winner = GameState.PlayerEnum.none };
         }
 
@@ -52,6 +59,6 @@ pub const Ball = struct {
         return .{ .is_game_over = false, .game_winner = GameState.PlayerEnum.none };
     }
     pub fn draw(self: *Ball) void {
-        rl.drawCircleV(self.position, self.size, rl.Color.white);
+        rl.drawCircleV(self.position, self.size, self.color);
     }
 };

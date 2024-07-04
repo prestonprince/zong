@@ -10,7 +10,7 @@ pub fn main() !void {
     rl.initWindow(game_state.SCREEN_WIDTH, game_state.SCREEN_HEIGHT, "zong");
     defer rl.closeWindow();
 
-    var main_ball = ball.Ball.init(400, 200, 10, 4);
+    var main_ball = ball.Ball.init(400, 200, 10, 5, rl.Color.white);
     var wall_1 = wall.Wall.init(50, 10, wall.WALL_WIDTH, wall.WALL_HEIGHT, 0);
     var wall_2 = wall.Wall.init(730, 10, wall.WALL_WIDTH, wall.WALL_HEIGHT, 0);
 

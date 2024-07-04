@@ -1,3 +1,4 @@
+const rl = @import("raylib");
 const wall = @import("wall.zig");
 const ball = @import("ball.zig");
 
@@ -24,6 +25,10 @@ pub const GameState = struct {
         self.wall_1.update(true);
         self.wall_2.update(false);
         const game_update = self.main_ball.update(self.wall_1, self.wall_2);
+
+        if (@abs(self.main_ball.speed.x) >= 12) {
+            self.main_ball.color = rl.Color.pink;
+        }
 
         if (game_update.is_game_over) {
             self.is_game_over = game_update.is_game_over;
