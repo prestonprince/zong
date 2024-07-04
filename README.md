@@ -1,8 +1,8 @@
 # Zong
 Pong written in Zig and Raylib.
 
-## Build
-Run `zig build`
+## Run
+Clone this repository, then execute the `zong` file found in `zig-out/bin/zong`.
 
-## Run Zong
-After running the above build command, 
+## To play
+Keys `w` and `s` move the left wall vertically, while the `up` and `down` arrow keys move the rigt wall vertically.
