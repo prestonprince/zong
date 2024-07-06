@@ -6,19 +6,39 @@ const Wall = wall_model.Wall;
 
 const GameState = @import("game_state.zig");
 
+const InitialBallValuesModel = struct {
+    pos: rl.Vector2,
+    speed: rl.Vector2,
+    size: f32,
+    color: rl.Color,
+};
+
+pub const InitialBallValues = InitialBallValuesModel{
+    .size = 10,
+    .pos = rl.Vector2.init(400, 200),
+    .speed = rl.Vector2.init(5, 5),
+    .color = rl.Color.white,
+};
+
 pub const Ball = struct {
     position: rl.Vector2,
     size: f32,
     speed: rl.Vector2,
     color: rl.Color,
 
-    pub fn init(x: f32, y: f32, size: f32, speed: f32, color: rl.Color) Ball {
+    pub fn init() Ball {
         return Ball{
-            .position = rl.Vector2.init(x, y),
-            .size = size,
-            .speed = rl.Vector2.init(speed, speed),
-            .color = color,
+            .position = InitialBallValues.pos,
+            .size = InitialBallValues.size,
+            .speed = InitialBallValues.speed,
+            .color = InitialBallValues.color,
         };
+    }
+    pub fn reset(self: *Ball) void {
+        self.position = InitialBallValues.pos;
+        self.size = InitialBallValues.size;
+        self.speed = InitialBallValues.speed;
+        self.color = InitialBallValues.color;
     }
     pub fn update(self: *Ball, wall_1: *Wall, wall_2: *Wall) struct {
         is_game_over: bool,

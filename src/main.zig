@@ -12,17 +12,18 @@ pub fn main() !void {
     rl.initWindow(game_state.SCREEN_WIDTH, game_state.SCREEN_HEIGHT, "zong");
     defer rl.closeWindow();
 
-    var main_ball = ball.Ball.init(400, 200, 10, 5, rl.Color.white);
-    var wall_1 = wall.Wall.init(50, 10, wall.WALL_WIDTH, wall.WALL_HEIGHT, 0);
-    var wall_2 = wall.Wall.init(730, 10, wall.WALL_WIDTH, wall.WALL_HEIGHT, 0);
+    var main_ball = ball.Ball.init();
+    var wall_1 = wall.Wall.init_wall_1();
+    var wall_2 = wall.Wall.init_wall_2();
 
     var main_game_state = game_state.GameState{
         .main_ball = &main_ball,
         .wall_1 = &wall_1,
         .wall_2 = &wall_2,
         .game_winner = game_state.PlayerEnum.none,
-        .is_game_over = false,
         .is_title_screen = true,
+        .is_main_game = false,
+        .is_game_over = false,
     };
 
     // Main game loop
@@ -37,14 +38,14 @@ pub fn main() !void {
             const title_text = "Zong";
             const title_text_starts = util.get_x_y_text_start(title_text, 24);
 
-            const instruction_text = "Press Enter To Start";
+            const instruction_text = "Press Space To Start";
             const instruction_text_starts = util.get_x_y_text_start(instruction_text, 24);
 
             rl.drawText(title_text, title_text_starts.x_start, title_text_starts.y_start - 25, 24, rl.Color.white);
             rl.drawText(instruction_text, instruction_text_starts.x_start, instruction_text_starts.y_start + 10, 24, rl.Color.white);
 
             main_game_state.update();
-        } else if (!main_game_state.is_game_over and main_game_state.game_winner == game_state.PlayerEnum.none) {
+        } else if (main_game_state.is_main_game) {
             // Update
             main_game_state.update();
 
@@ -64,9 +65,7 @@ pub fn main() !void {
             rl.drawText(restart_text, restart_text_starts.x_start, restart_text_starts.y_start + 40, 18, rl.Color.white);
 
             if (rl.isKeyDown(rl.KeyboardKey.key_enter)) {
-                main_game_state.game_winner = game_state.PlayerEnum.none;
-                main_game_state.is_game_over = false;
-                main_game_state.is_title_screen = true;
+                main_game_state.reset();
             }
         }
     }
