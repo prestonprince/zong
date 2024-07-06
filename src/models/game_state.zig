@@ -1,3 +1,4 @@
+const std = @import("std");
 const rl = @import("raylib");
 const wall = @import("wall.zig");
 const ball = @import("ball.zig");
@@ -25,11 +26,19 @@ pub const GameState = struct {
     is_game_over: bool,
     game_winner: PlayerEnum,
 
+    // Time
+    game_start: i64,
+
+    // Allocator
+    alloc: std.mem.Allocator,
+
     pub fn update(self: *GameState) void {
         if (self.is_title_screen) {
             if (rl.isKeyDown(rl.KeyboardKey.key_space)) {
                 self.is_title_screen = false;
                 self.is_main_game = true;
+
+                self.game_start = std.time.timestamp();
             }
 
             return;
@@ -49,7 +58,7 @@ pub const GameState = struct {
         }
     }
 
-    pub fn reset(self: *GameState) void {
+    pub fn reset(self: *GameState) !void {
         self.main_ball.reset();
         self.wall_1.reset_wall_1();
         self.wall_2.reset_wall_2();
@@ -60,7 +69,18 @@ pub const GameState = struct {
         self.game_winner = PlayerEnum.none;
     }
 
-    pub fn draw(self: *GameState) void {
+    pub fn draw(self: *GameState) !void {
+        // Draw Time
+        const t = std.time.timestamp() - self.game_start;
+        const str = try std.fmt.allocPrint(self.alloc, "{d}", .{t});
+        defer self.alloc.free(str);
+
+        const text: [:0]const u8 = try self.alloc.dupeZ(u8, str);
+        defer self.alloc.free(text);
+
+        const text_starts = util.get_x_y_text_start(text, 32);
+        rl.drawText(text, text_starts.x_start, text_starts.y_start, 32, rl.Color.white);
+
         self.wall_1.draw();
         self.wall_2.draw();
         self.main_ball.draw();
