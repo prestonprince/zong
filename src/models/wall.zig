@@ -1,6 +1,6 @@
 const rl = @import("raylib");
 const game_state = @import("game_state.zig");
-pub const WALL_HEIGHT = 200;
+pub const WALL_HEIGHT = 125;
 pub const WALL_WIDTH = 20;
 
 const WallInitialValuesModel = struct {

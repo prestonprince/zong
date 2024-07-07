@@ -59,7 +59,7 @@ pub const Ball = struct {
         const wall_2_x_conditional = self.position.x + self.size >= wall_2.position.x;
 
         if ((wall_1_y_cond and wall_1_x_conditional) or (wall_2_y_cond and wall_2_x_conditional)) {
-            if (@abs(self.speed.x) < 12) {
+            if (@abs(self.speed.x) < 16) {
                 self.speed.x *= -1.1;
             } else {
                 self.speed.x *= -1;

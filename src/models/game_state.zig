@@ -48,7 +48,7 @@ pub const GameState = struct {
         self.wall_2.update(false);
         const game_update = self.main_ball.update(self.wall_1, self.wall_2);
 
-        if (@abs(self.main_ball.speed.x) >= 12) {
+        if (@abs(self.main_ball.speed.x) >= 16) {
             self.main_ball.color = rl.Color.pink;
         }
 
