@@ -1,4 +1,5 @@
 const rl = @import("raylib");
+const game_state = @import("game_state.zig");
 pub const WALL_HEIGHT = 200;
 pub const WALL_WIDTH = 20;
 
@@ -44,11 +45,11 @@ pub const Wall = struct {
     }
     pub fn update(self: *Wall, is_wall_1: bool) void {
         if (is_wall_1) {
-            if (rl.isKeyDown(rl.KeyboardKey.key_w)) self.position.y -= 9;
-            if (rl.isKeyDown(rl.KeyboardKey.key_s)) self.position.y += 9;
+            if (rl.isKeyDown(rl.KeyboardKey.key_w) and self.position.y >= 0) self.position.y -= 9;
+            if (rl.isKeyDown(rl.KeyboardKey.key_s) and self.position.y + WALL_HEIGHT <= game_state.SCREEN_HEIGHT) self.position.y += 9;
         } else {
-            if (rl.isKeyDown(rl.KeyboardKey.key_up)) self.position.y -= 9;
-            if (rl.isKeyDown(rl.KeyboardKey.key_down)) self.position.y += 9;
+            if (rl.isKeyDown(rl.KeyboardKey.key_up) and self.position.y >= 0) self.position.y -= 9;
+            if (rl.isKeyDown(rl.KeyboardKey.key_down) and self.position.y + WALL_HEIGHT <= game_state.SCREEN_HEIGHT) self.position.y += 9;
         }
     }
     pub fn draw(self: *Wall) void {
