@@ -28,6 +28,7 @@ pub fn main() !void {
         .is_game_over = false,
         .alloc = alloc,
         .game_start = 0,
+        .curr_time = 0,
     };
 
     // Main game loop
@@ -67,6 +68,8 @@ pub fn main() !void {
             rl.drawText(game_over_text, game_over_text_starts.x_start, game_over_text_starts.y_start - 25, 24, rl.Color.red);
             rl.drawText(game_winner_text, game_winner_text_starts.x_start, game_winner_text_starts.y_start + 10, 24, rl.Color.red);
             rl.drawText(restart_text, restart_text_starts.x_start, restart_text_starts.y_start + 40, 18, rl.Color.white);
+
+            try main_game_state.draw();
 
             if (rl.isKeyDown(rl.KeyboardKey.key_enter)) {
                 try main_game_state.reset();

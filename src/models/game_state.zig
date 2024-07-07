@@ -28,6 +28,7 @@ pub const GameState = struct {
 
     // Time
     game_start: i64,
+    curr_time: i64,
 
     // Allocator
     alloc: std.mem.Allocator,
@@ -67,19 +68,37 @@ pub const GameState = struct {
         self.is_title_screen = true;
         self.is_main_game = false;
         self.game_winner = PlayerEnum.none;
+        self.game_start = 0;
     }
 
     pub fn draw(self: *GameState) !void {
-        // Draw Time
-        const t = std.time.timestamp() - self.game_start;
-        const str = try std.fmt.allocPrint(self.alloc, "{d}", .{t});
-        defer self.alloc.free(str);
+        if (self.is_main_game) {
+            // Draw Time
+            const t = std.time.timestamp() - self.game_start;
+            self.curr_time = t;
+            const str = try std.fmt.allocPrint(self.alloc, "{d}", .{t});
+            defer self.alloc.free(str);
 
-        const text: [:0]const u8 = try self.alloc.dupeZ(u8, str);
-        defer self.alloc.free(text);
+            const text: [:0]const u8 = try self.alloc.dupeZ(u8, str);
+            defer self.alloc.free(text);
 
-        const text_starts = util.get_x_y_text_start(text, 32);
-        rl.drawText(text, text_starts.x_start, text_starts.y_start, 32, rl.Color.white);
+            const text_starts = util.get_x_y_text_start(text, 32);
+            rl.drawText(text, text_starts.x_start, 10, 32, rl.Color.white);
+        }
+
+        if (self.is_game_over) {
+            const seconds_text = if (self.curr_time > 1) "Seconds" else "Second";
+            const str = try std.fmt.allocPrint(self.alloc, "You Survived {d} {s}", .{ self.curr_time, seconds_text });
+            defer self.alloc.free(str);
+
+            const text: [:0]const u8 = try self.alloc.dupeZ(u8, str);
+            defer self.alloc.free(text);
+
+            const text_starts = util.get_x_y_text_start(text, 18);
+            rl.drawText(text, text_starts.x_start, text_starts.y_start + 75, 18, rl.Color.white);
+
+            return;
+        }
 
         self.wall_1.draw();
         self.wall_2.draw();
